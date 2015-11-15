@@ -65,7 +65,9 @@ text2html()
 		s/&/%26/g
 		s/+/%2B/g
 		s/</%26lt;/g
-		s/>/%26gt;/g'
+		s/>/%26gt;/g
+		s/%26lt;%26lt;%26lt;%26lt;/</g
+		s/%26gt;%26gt;%26gt;%26gt;/>/g'
 }
 
 # Convert HTML characters to plain text
@@ -104,7 +106,11 @@ listUsers()
 		rname="$(echo "$user" | $jq -r ".real_name")"
 		userid="$(echo "$user" | $jq -r ".id")"
 		email="$(echo "$user" | $jq -r ".profile.email")"
-		echo "$name($userid|$email): $rname"
+		if [ "$email" != "null" ]; then
+			echo "$name($userid|<<<<mailto:$email|$email>>>>): $rname"
+		else
+			echo "$name($userid): $rname"
+		fi
 	done
 	echo "Total: $count users."
 }
