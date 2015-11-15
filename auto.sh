@@ -103,7 +103,8 @@ listUsers()
 		name="$(echo "$user" | $jq -r ".name")"
 		rname="$(echo "$user" | $jq -r ".real_name")"
 		userid="$(echo "$user" | $jq -r ".id")"
-		echo "$name($userid): $rname"
+		email="$(echo "$user" | $jq -r ".profile.email")"
+		echo "$name($userid|$email): $rname"
 	done
 	echo "Total: $count users."
 }
