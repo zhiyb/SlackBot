@@ -123,7 +123,7 @@ reply()
 			reply="$(echo -n "<@$userid>: "; echo "$3" | text2html)"
 		fi
 	fi
-	echo -n "Reply to $name($userid): $reply: "
+	echo -n "Reply to $name($userid): $reply"
 	post $chid "$reply" > /dev/null
 }
 
