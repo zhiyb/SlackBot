@@ -141,13 +141,29 @@ handler()
 	name="$2"
 	text="$(echo "$3" | sed -e 's/^[ \t\s]*//;s/[ \t]*$//')"
 
+	if [ "$4" == "zh_CN" ]; then
+		export TZ=Asia/Shanghai
+		export LC_ALL=zh_CN.utf8
+	fi
+
 	case "$text" in
-	date ) date '+%Y-%m-%d';;
-	time ) date '+%H:%M:%S';;
-	datetime ) date '+%Y-%m-%d %H:%M:%S';;
-	users ) listUsers;;
-	* ) echo "Hello, $name! Your user ID is ${userid}.";;
+	date ) date '+%F %A'; return;;
+	time ) date '+%H:%M:%S'; return;;
+	datetime ) date '+%F %A %H:%M:%S'; return;;
+	users ) listUsers; return;;
 	esac
+
+	if [ "$4" == "zh_CN" ]; then
+		case "$text" in
+		"" ) echo -n "你好, $name! 你的ID是 ${userid}. "; date '+今天是 %x %A, 第%V周, 这一年的第%j天, epoch开始的第%s秒, 时区: %Z(%:z), 现在是%X.';;
+		* ) echo "你好, $name! 你的ID是 ${userid}.";;
+		esac
+	else
+		case "$text" in
+		"" ) echo -n "Hello, $name! Your ID is ${userid}. "; date '+Today is %A, %x, week %V, day %j of the year, %s seconds since epoch, time zone %Z(%:z), the time now is %X.';;
+		* ) echo "Hello, $name! Your user ID is ${userid}.";;
+		esac
+	fi
 }
 
 # Handle general text messages
@@ -180,6 +196,11 @@ genericMessageHandler()
 			reply "$userid" "$name" "Insufficient permission."
 		fi;;
 	'|' ) reply "$userid" "$name" "${text:1}" no;;
+	esac
+
+	# Starting with wide character (typically 3 bytes in UTF-8)
+	case "${text:0:3}" in
+	'！' ) reply "$userid" "$name" "$(handler "$userid" "$name" "${text:3}" zh_CN)";;
 	esac
 }
 
