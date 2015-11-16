@@ -24,7 +24,9 @@ else
 		#imchannel=1
 
 		# Name of the bot
-		botname='I'm a bot =w='
+		botname='I'm a bot'
+		# User name of the bot (all lower case)
+		botuname='the_bot'
 		# Admin premission to shell execution
 		admin='admin_account'
 
@@ -48,7 +50,7 @@ get()
 post()
 {
 	#echo '{"text": "'"$2"'", "channel": "'"$1"'", "username": "zhiyb-AUTO" '"$3"'}' | $jq >&2
-	curl -s "$hook" --data 'payload={"text": "'"$2"'", "channel": "'"$1"'", "username": "'"$botname"'" '"$3"'}'
+	curl -s "$hook" --data 'payload={"icon_url": "'"$iconurl"'", "text": "'"$2"'", "channel": "'"$1"'", "username": "'"$botname"'" '"$3"'}'
 }
 
 # Convert special characters to HTML characters
@@ -111,6 +113,7 @@ listUsers()
 		else
 			echo "$name($userid): $rname"
 		fi
+		[ "$name" == "$botuname" ] && iconurl="$(echo "$user" | $jq -r ".profile.image_original")" && echo "Icon get: $iconurl";
 	done
 	echo "Total: $count users."
 }
@@ -134,6 +137,22 @@ reply()
 	post $chid "$reply" > /dev/null
 }
 
+# Get bot API
+getapi()
+{
+	method="$1"
+	shift
+	get "$method" $token $@
+}
+
+# Get team API
+gettapi()
+{
+	method="$1"
+	shift
+	get "$method" $ttoken $@
+}
+
 # Handle specific messages
 handler()
 {
@@ -146,11 +165,13 @@ handler()
 		export LC_ALL=zh_CN.utf8
 	fi
 
-	case "$text" in
+	case "${text%%\ *}" in
 	date ) date '+%F %A'; return;;
 	time ) date '+%H:%M:%S'; return;;
 	datetime ) date '+%F %A %H:%M:%S'; return;;
 	users ) listUsers; return;;
+	get ) getapi ${text##*\ } | $jq -r "."; return;;
+	gett ) gettapi ${text##*\ } | $jq -r "."; return;;
 	esac
 
 	if [ "$4" == "zh_CN" ]; then
@@ -188,6 +209,7 @@ genericMessageHandler()
 
 	case "${text:0:1}" in
 	'!' ) reply "$userid" "$name" "$(handler "$userid" "$name" "${text:1}")";;
+	'！' ) reply "$userid" "$name" "$(handler "$userid" "$name" "${text:1}" zh_CN)";;
 	'$' ) reply "$userid" "$name" "$(eval "${text:1}" 2>&1)"
 		return
 		if [ "$name" == "$admin" ]; then
@@ -196,11 +218,6 @@ genericMessageHandler()
 			reply "$userid" "$name" "Insufficient permission."
 		fi;;
 	'|' ) reply "$userid" "$name" "${text:1}" no;;
-	esac
-
-	# Starting with wide character (typically 3 bytes in UTF-8)
-	case "${text:0:3}" in
-	'！' ) reply "$userid" "$name" "$(handler "$userid" "$name" "${text:3}" zh_CN)";;
 	esac
 }
 
@@ -250,7 +267,7 @@ userupdate=1
 
 while :; do
 	# Update user list
-	((userupdate)) && userupdate=0 && updateUsers
+	((userupdate)) && userupdate=0 && listUsers
 
 	# Load new messages
 	if ((imchannel)); then
