@@ -113,7 +113,7 @@ listUsers()
 		else
 			echo "$name($userid): $rname"
 		fi
-		[ "$name" == "$botuname" ] && iconurl="$(echo "$user" | $jq -r ".profile.image_original")" && echo "Icon get: $iconurl";
+		[ "$name" == "$botuname" ] && iconurl="$(echo "$user" | $jq -r ".profile.image_original")" #&& echo "Icon get: $iconurl";
 	done
 	echo "Total: $count users."
 }
@@ -146,7 +146,7 @@ getapi()
 }
 
 # Get team API
-gettapi()
+getapit()
 {
 	method="$1"
 	shift
@@ -170,8 +170,8 @@ handler()
 	time ) date '+%H:%M:%S'; return;;
 	datetime ) date '+%F %A %H:%M:%S'; return;;
 	users ) listUsers; return;;
-	get ) getapi ${text##*\ } | $jq -r "."; return;;
-	gett ) gettapi ${text##*\ } | $jq -r "."; return;;
+	api ) getapi ${text##*\ } | $jq -r "."; return;;
+	apit ) getapit ${text##*\ } | $jq -r "."; return;;
 	esac
 
 	if [ "$4" == "zh_CN" ]; then
