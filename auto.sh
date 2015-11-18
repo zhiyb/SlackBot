@@ -78,7 +78,9 @@ html2text()
 {
 	sed '	s/&amp;/\&/g
 		s/&lt;/\</g
-		s/&gt;/\>/g'
+		s/&gt;/\>/g
+		s/<.*|\(.*\)>/\1/
+		s/<\(.\+\)>/\1/'
 }
 
 # Update user list
