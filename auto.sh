@@ -212,8 +212,7 @@ genericMessageHandler()
 	case "${text:0:1}" in
 	'!' ) reply "$userid" "$name" "$(handler "$userid" "$name" "${text:1}")";;
 	'！' ) reply "$userid" "$name" "$(handler "$userid" "$name" "${text:1}" zh_CN)";;
-	'$' ) reply "$userid" "$name" "$(eval "${text:1}" 2>&1)"
-		return
+	'$' ) reply "$userid" "$name" "$(eval "${text:1}" 2>&1)"; return
 		if [ "$name" == "$admin" ]; then
 			reply "$userid" "$name" "$(eval "${text:1}" 2>&1)"
 		else
@@ -244,10 +243,10 @@ updateStatus()
 	echo "oldest=$oldest" > $statusfile
 }
 
-if [ "$(get rtm.start $token | $jq -r '.ok')" != true ]; then
-	echo "rtm.start failed"
-	exit 1
-fi
+#if [ "$(get rtm.start $token | $jq -r '.ok')" != true ]; then
+#	echo "rtm.start failed"
+#	exit 1
+#fi
 
 [ -e $statusfile ] && . $statusfile
 oldest="${oldest:-0}"
@@ -285,15 +284,15 @@ while :; do
 	count="$(echo "$msgs" | $jq -r ".messages | length")"
 	((count == 0)) && sleep $refresh && continue
 
-	# Iteration through messages
-	echo "Found $count message(s)."
-	for ((i = count; i != 0; i--)); do
-		messageHandler "$(echo "$msgs" | $jq -r ".messages[$((i - 1))]")"
-	done
-
 	# Update oldest with the newest message
 	oldest="$(echo "$msgs" | $jq -r ".messages[0].ts")"
 
 	# Update status file
 	updateStatus
+
+	# Iteration through messages
+	echo "Found $count message(s)."
+	for ((i = count; i != 0; i--)); do
+		messageHandler "$(echo "$msgs" | $jq -r ".messages[$((i - 1))]")"
+	done
 done
